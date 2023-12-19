@@ -1,12 +1,9 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {ScrollView, View} from 'react-native';
 import ContainerImage from '~/components/global/containerImage';
 import {images} from '~/assets';
 import {HeightSize} from '~/theme/size';
 import CardSlide from './components/styleIdea/cardSlide';
-import {useSharedValue} from 'react-native-reanimated';
-import {useDispatch} from 'react-redux';
-import {AppDispatch} from '~/app/store';
 import {
   SetCurrentDropDown,
   SetDirectionBottomBar,
@@ -17,21 +14,22 @@ import HotLooks from './components/hotLooks';
 import DropDown from './components/dropDown';
 import SearchHomeScreen from './components/search';
 import DropDownComponent from '~/components/global/dropDown';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {HomeStackParamList} from '~/types';
+import {useHomeFacade} from './hooks/useHomeFacade';
 
 const HomeScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<HomeStackParamList>>();
-  const lastContentOffset = useSharedValue(0);
-  const isScrolling = useSharedValue(false);
-  const translateY = useSharedValue(0);
-  const dispatch = useDispatch<AppDispatch>();
-  const [isShowDropDown, setIsShowDropDown] = useState(false);
+  const {
+    dispatch,
+    navigation,
+    lastContentOffset,
+    isScrolling,
+    translateY,
+    isShowDropDown,
+    setIsShowDropDown,
+  } = useHomeFacade();
 
   return (
     <ContainerImage
-      isOpacity={true}
+      // isOpacity={true}
       style={{flex: 1}}
       resizeMode="cover"
       source={images.home.BackgroundHome}>
@@ -49,7 +47,6 @@ const HomeScreen = () => {
               if (translateY.value === 100) {
                 translateY.value = 0;
                 dispatch(SetDirectionBottomBar('up'));
-                console.log('scrolling up');
               }
             } else if (
               lastContentOffset.value < event.nativeEvent.contentOffset.y &&
@@ -58,7 +55,6 @@ const HomeScreen = () => {
               if (translateY.value === 0) {
                 translateY.value = 100;
                 dispatch(SetDirectionBottomBar('down'));
-                console.log('scrolling down');
               }
             }
             lastContentOffset.value = event.nativeEvent.contentOffset.y;

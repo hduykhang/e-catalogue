@@ -7,54 +7,67 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {width, HeightSize, WidthSize} from '~/theme/size';
 import {TextFont, TextStyle} from '~/theme/textStyle';
 type PrimaryButtonProps = {
   title: string;
   handlePress: () => void;
   style?: StyleProp<ViewStyle>;
+  enable?: boolean;
 };
 
-const PrimaryButton = ({title, handlePress, style}: PrimaryButtonProps) => {
+const PrimaryButton = ({
+  title,
+  handlePress,
+  style,
+  enable = true,
+}: PrimaryButtonProps) => {
   const scale = React.useRef(new Animated.Value(1)).current;
+  const changeColor = React.useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    Animated.timing(changeColor, {
+      toValue: enable ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [enable]);
+  //enable ? '#2D2516' : '#BDBDBD'
   return (
-    <View
-      style={[
-        {
-          width: '100%',
-          height: HeightSize(50),
-        },
-        style,
-      ]}>
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#2D2516',
-          width: '100%',
-          height: '100%',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: 15,
-          transform: [{scale}],
-        }}
-        activeOpacity={0.7}
-        onPress={async () => {
-          handlePress();
-        }}
-        onPressIn={() => {
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={async () => {
+        enable && handlePress();
+      }}
+      onPressIn={() => {
+        enable &&
           Animated.timing(scale, {
             toValue: 0.95,
             duration: 100,
             useNativeDriver: true,
           }).start();
-        }}
-        onPressOut={() => {
+      }}
+      onPressOut={() => {
+        enable &&
           Animated.timing(scale, {
             toValue: 1,
             duration: 100,
             useNativeDriver: true,
           }).start();
-        }}>
+      }}>
+      <Animated.View
+        style={[
+          {
+            backgroundColor: enable ? '#2D2516' : '#BDBDBD',
+            width: '100%',
+            height: HeightSize(50),
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 15,
+            transform: [{scale}],
+          },
+          style,
+        ]}>
         <Text
           style={{
             color: 'white',
@@ -63,8 +76,8 @@ const PrimaryButton = ({title, handlePress, style}: PrimaryButtonProps) => {
           }}>
           {title}
         </Text>
-      </TouchableOpacity>
-    </View>
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
