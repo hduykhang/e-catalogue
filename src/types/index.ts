@@ -1,5 +1,4 @@
 import {NavigatorScreenParams} from '@react-navigation/native';
-import {ImageSourcePropType} from 'react-native';
 import {
   AUTHSTACK,
   CATEGORY,
@@ -25,7 +24,11 @@ import {
   ADDADDRESS,
   STYLEDETAIL,
   STYLEIDEASTACK,
-  ALLIMAGE,
+  ACCOUNT_DETAIL,
+  ADDRESS_BOOK,
+  MY_PURCHASES,
+  MY_WALLET,
+  PROFILE_STACK,
 } from '~/constants/routeNames';
 
 export type LoadingState = 'idle' | 'pending' | 'fulfilled' | 'rejected';
@@ -57,7 +60,7 @@ export type AuthenticationStackParamList = {
 
 export type HomeStackParamList = {
   [HOME]: undefined;
-  [PROFILE]: undefined;
+  [PROFILE_STACK]: undefined;
   [CATEGORY]: NavigatorScreenParams<CategoryStackParamList>;
   [FAVORITE]: undefined;
   [STYLEIDEASTACK]: NavigatorScreenParams<StyleIdeaStackParamList>;
@@ -76,12 +79,6 @@ export type StyleIdeaStackParamList = {
   [STYLEIDEA]: undefined;
   [STYLEDETAIL]: {
     styleId?: string;
-  };
-  [ALLIMAGE]: {
-    arrayImages: Array<{
-      id: string;
-      url: ImageSourcePropType;
-    }>;
   };
 };
 
@@ -105,4 +102,12 @@ export type OrderStackParamList = {
   [CONFIRMORDER]: undefined;
   [EDITADDRESS]: undefined;
   [ADDADDRESS]: undefined;
+};
+
+export type ProfileStackParamList = {
+  [PROFILE]: undefined;
+  [ACCOUNT_DETAIL]: undefined;
+  [MY_PURCHASES]: undefined;
+  [ADDRESS_BOOK]: undefined;
+  [MY_WALLET]: undefined;
 };
