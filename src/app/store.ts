@@ -3,6 +3,7 @@ import authSlice from '../redux/reducers/authSlice';
 import homeSlice from '../redux/reducers/homeSlice';
 import globalSlice from '~/redux/reducers/globalSlice';
 import orderSlice from '~/redux/reducers/orderSlice';
+import productSlice from '~/redux/reducers/productSlice';
 import userInfo from '~/redux/reducers/userInfo';
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
     home: homeSlice,
     global: globalSlice,
     order: orderSlice,
+    product: productSlice,
     userInfo: userInfo,
   },
 });

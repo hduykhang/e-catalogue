@@ -29,6 +29,7 @@ export const ADDADDRESS = 'AddAddress';
 
 export const STYLEIDEASTACK = 'StyleIdeaStack';
 export const STYLEDETAIL = 'StyleDetail';
+export const ALLIMAGE = 'AllImage';
 
 export const PROFILE = 'Profile';
 export const ACCOUNT_DETAIL = 'AccountDetail';
