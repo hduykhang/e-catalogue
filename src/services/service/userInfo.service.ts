@@ -10,10 +10,17 @@ export const userInfoService = {
     return request<UserInfo>(apiUrl.profileImage(), Methods.post, params, true);
   },
   getUserInfo: (params: {id: string}) => {
-    return request<UserInfo>(
-      apiUrl.getUserInfo() + `${params.id}`,
-      Methods.get,
-      undefined,
-    );
+    return request<UserInfo>(apiUrl.getUserInfo(), Methods.get, params);
+  },
+  setUserInfo: (params: UserInfo | undefined) => {
+    return request<UserInfo>(apiUrl.setUserInfo(), Methods.post, params);
+  },
+  followStore: (params: {storeId: number; follow: boolean}) => {
+    return request<
+      Array<{
+        storeId: number;
+        userId: number;
+      }>
+    >(apiUrl.followStore(), Methods.post, params);
   },
 };

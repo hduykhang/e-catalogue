@@ -10,6 +10,7 @@ import {
   SetIsAuthorized,
   SetIsShowOnBoard,
   SetIsShowSplash,
+  SetUserInforLogin,
 } from '~/redux/reducers/authSlice';
 import {TextFont, TextStyle} from '~/theme/textStyle';
 import {AppProvider} from '~/app/appProvider';
@@ -60,6 +61,19 @@ const SplashScreen = () => {
     const getAuth = await checkAccessTokens();
     if (getAuth.isRefreshTokenValid) {
       authService.me().then(res => {
+        AppProvider.setAccountInfo({
+          id: res.data.id,
+          username: res.data.username,
+          role: res.data.role,
+          email: res.data.email,
+        });
+        dispatch(
+          SetUserInforLogin({
+            id: res.data.id,
+            username: res.data.username,
+            role: res.data.role,
+          }),
+        );
         dispatch(SetIsAuthorized(checkRole(res.data.role)));
       });
     }

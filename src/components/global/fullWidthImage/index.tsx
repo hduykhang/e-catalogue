@@ -8,13 +8,15 @@ import {
   Text,
   View,
 } from 'react-native';
-import Svg, {Path} from 'react-native-svg';
-import {HeightSize, WidthSize} from '~/theme/size';
+import {HeightSize, WidthSize, height, width} from '~/theme/size';
+import {TextFont, TextStyle} from '~/theme/textStyle';
 
 export default function FullWidthImage(props: {
+  widthNeed?: number;
   source: any;
   ratio?: number;
   style?: StyleProp<ImageStyle>;
+  imageStyle?: StyleProp<ImageStyle>;
   children?: any;
   retangles?: {
     size: {
@@ -33,146 +35,224 @@ export default function FullWidthImage(props: {
   onPressIn?: (e: any) => void;
   onPressOut?: (e: any) => void;
 }) {
-  const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
+  const [widthImg, setWidthImg] = useState(0);
+  const [heightImg, setHeightImg] = useState(0);
   const [visible, setVisible] = useState(false);
 
   const onLayout = useCallback(
     (event: any) => {
-      const containerWidth = event.nativeEvent.layout.width;
+      const containerWidth = props.widthNeed
+        ? props.widthNeed
+        : event.nativeEvent.layout.width;
       if (props.ratio) {
-        setWidth(containerWidth);
-        setHeight(containerWidth * props.ratio);
+        setWidthImg(containerWidth);
+        setHeightImg(containerWidth * props.ratio);
       } else if (typeof props.source === 'number') {
         const source = Image.resolveAssetSource(props.source);
-        setWidth(containerWidth);
-        setHeight((containerWidth * source.height) / source.width);
+        setWidthImg(containerWidth);
+        setHeightImg((containerWidth * source.height) / source.width);
       } else if (typeof props.source === 'object') {
         Image.getSize(props.source.uri, (w, h) => {
-          setWidth(containerWidth);
-          setHeight((containerWidth * h) / w);
+          setWidthImg(containerWidth);
+          setHeightImg((containerWidth * h) / w);
         });
       }
     },
-    [props.ratio, props.source],
+    [props.ratio, props.source, props.widthNeed],
   );
 
-  return (
-    <Pressable
-      onPress={() => {
-        setVisible(!visible);
-      }}
-      onPressIn={props.onPressIn}
-      onPressOut={props.onPressOut}
-      onLayout={onLayout}>
-      <ImageBackground
-        source={props.source}
-        style={[{width, height}, props.style]}
-        resizeMode="contain">
-        {props.children}
-      </ImageBackground>
-      {props.retangles && (
-        // <Svg
-        //   style={[
-        //     {
-        //       position: 'absolute',
-        //       zIndex: 1,
-        //       width: width,
-        //       height: height,
-        //     },
-        //     props.style,
-        //   ]}>
-        //   {props.retangles.shapes.map(
-        //     (
-        //       retangle: {
-        //         minX: number;
-        //         minY: number;
-        //         maxX: number;
-        //         maxY: number;
-        //         info?: string;
-        //       },
-        //       index: React.Key | null | undefined,
-        //     ) => (
-        //       <Path
-        //         key={index}
-        //         d={`M${WidthSize(retangle.minX)},${WidthSize(
-        //           retangle.minY,
-        //         )} L ${WidthSize(retangle.maxX)},${WidthSize(
-        //           retangle.minY,
-        //         )} L ${WidthSize(retangle.maxX)},${WidthSize(
-        //           retangle.maxY,
-        //         )} L ${WidthSize(retangle.minX)},${WidthSize(
-        //           retangle.maxY,
-        //         )} L ${WidthSize(retangle.minX)},${WidthSize(retangle.minY)}`}
-        //         stroke="#EF6556"
-        //         strokeWidth={4}
-        //         fill={'none'}
-        //       />
-        //     ),
-        //   )}
-        // </Svg>
+  const renderTriangle = (top: number, left: number, rotate: string) => {
+    return (
+      <View
+        style={{
+          position: 'absolute',
+          top: top,
+          left: left,
+          width: 0,
+          height: 0,
+          backgroundColor: 'transparent',
+          borderStyle: 'solid',
+          borderLeftWidth: 10,
+          borderRightWidth: 10,
+          borderBottomWidth: 10,
+          borderLeftColor: 'transparent',
+          borderRightColor: 'transparent',
+          borderBottomColor: '#ffffffB3',
+          transform: [{rotate: rotate}],
+        }}
+      />
+    );
+  };
 
+  const renderInfoBox = (retangle: {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    info?: string;
+  }) => {
+    let left = WidthSize((retangle.maxX - retangle.minX) / 2 - 50);
+    let top = WidthSize((retangle.maxY - retangle.minY) / 2);
+    let topTriangle = -WidthSize(10);
+    let leftTriangle = WidthSize(40);
+    let rotate = '0deg';
+    if (WidthSize(retangle.maxX) < WidthSize(80)) {
+      left = WidthSize((retangle.maxX - retangle.minX) / 2 + 10);
+      top = WidthSize((retangle.maxY - retangle.minY) / 2 - 10);
+      topTriangle = WidthSize(30);
+      leftTriangle = -WidthSize(15);
+      rotate = '-90deg';
+    }
+
+    return (
+      <View
+        style={{
+          backgroundColor: '#ffffffB3',
+          position: 'absolute',
+          width: WidthSize(100),
+          height: HeightSize(60) + WidthSize(20),
+          left: left,
+          top: top,
+          borderRadius: 8,
+        }}>
+        {renderTriangle(topTriangle, leftTriangle, rotate)}
         <View
-          style={[
-            {
-              display: visible ? 'flex' : 'none',
-              position: 'absolute',
-              zIndex: 1,
-              width: width,
-              height: height,
-            },
-            props.style,
-          ]}>
-          {
-            <View
-              style={{
-                position: 'absolute',
-                zIndex: 1,
-                width: width,
-                height: height,
-              }}>
-              {props.retangles.shapes.map(
-                (
-                  retangle: {
-                    minX: number;
-                    minY: number;
-                    maxX: number;
-                    maxY: number;
-                    info?: string;
+          style={{
+            padding: WidthSize(10),
+            borderRadius: 8,
+          }}>
+          <Text
+            numberOfLines={1}
+            style={{
+              color: '#3B3021',
+              ...TextFont.SMedium,
+              ...TextStyle.SM,
+              width: WidthSize(80),
+            }}>
+            {retangle.info}
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={{
+              color: '#3B3021',
+              ...TextFont.SMedium,
+              ...TextStyle.SM,
+              width: WidthSize(80),
+            }}>
+            Price
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={{
+              color: '#3B3021',
+              ...TextFont.SMedium,
+              ...TextStyle.SM,
+              width: WidthSize(80),
+            }}>
+            Size
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <>
+      {props.onPress && props.onPressIn && props.onPressOut ? (
+        <Pressable
+          onPress={() => {
+            setVisible(!visible);
+          }}
+          onPressIn={props.onPressIn}
+          onPressOut={props.onPressOut}
+          onLayout={onLayout}>
+          <ImageBackground
+            source={props.source}
+            imageStyle={props.imageStyle}
+            style={[
+              {
+                width: widthImg,
+                height: heightImg,
+              },
+              props.style,
+            ]}
+            resizeMode="contain">
+            {props.children}
+            {props.retangles && (
+              <View
+                style={[
+                  {
+                    display: visible ? 'flex' : 'none',
+                    position: 'absolute',
+                    zIndex: 1,
+                    width: widthImg,
+                    height: heightImg,
                   },
-                  index: React.Key | null | undefined,
-                ) => (
-                  <Pressable
-                    key={index}
-                    onPress={() => {
-                      console.log(retangle.info);
-                    }}
+                  props.style,
+                ]}>
+                {
+                  <View
                     style={{
                       position: 'absolute',
                       zIndex: 1,
-                      width: WidthSize(retangle.maxX - retangle.minX),
-                      height: WidthSize(retangle.maxY - retangle.minY),
-                      left: WidthSize(retangle.minX),
-                      top: WidthSize(retangle.minY),
-                      backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                      borderRadius: 8,
+                      width: widthImg,
+                      height: heightImg,
                     }}>
-                    <Text
-                      style={{
-                        color: 'white',
-                        fontSize: WidthSize(12),
-                        textAlign: 'center',
-                        padding: WidthSize(10),
-                      }}>
-                      {retangle.info}
-                    </Text>
-                  </Pressable>
-                ),
-              )}
-            </View>
-          }
+                    {props.retangles.shapes.map(
+                      (
+                        retangle: {
+                          minX: number;
+                          minY: number;
+                          maxX: number;
+                          maxY: number;
+                          info?: string;
+                        },
+                        index: React.Key | null | undefined,
+                      ) => (
+                        <Pressable
+                          key={index}
+                          onPress={() => {
+                            console.log(
+                              retangle,
+                              (retangle.maxX + retangle.minX) / 2,
+                              (retangle.maxY + retangle.minY) / 2,
+                            );
+                          }}
+                          style={{
+                            position: 'absolute',
+                            zIndex: 1,
+                            width: WidthSize(retangle.maxX - retangle.minX),
+                            height: WidthSize(retangle.maxY - retangle.minY),
+                            left: WidthSize(retangle.minX),
+                            top: WidthSize(retangle.minY),
+                          }}>
+                          {renderInfoBox(retangle)}
+                        </Pressable>
+                      ),
+                    )}
+                  </View>
+                }
+              </View>
+            )}
+          </ImageBackground>
+        </Pressable>
+      ) : (
+        <View onLayout={onLayout}>
+          <ImageBackground
+            source={props.source}
+            imageStyle={props.imageStyle}
+            style={[
+              {
+                width: widthImg,
+                height: heightImg,
+              },
+              props.style,
+            ]}
+            resizeMode="contain">
+            {props.children}
+          </ImageBackground>
         </View>
       )}
-    </Pressable>
+    </>
   );
 }
