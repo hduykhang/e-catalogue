@@ -5,11 +5,20 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {images} from '~/assets';
 import ContainerImage from '~/components/global/containerImage';
 import HeaderProduct from '~/components/global/headerProduct';
@@ -28,8 +37,7 @@ import {IconSvg} from '~/components/global/iconSvg';
 import BlurBackground from '~/components/global/blurBackground';
 import {TextFont, TextStyle} from '~/theme/textStyle';
 import Review from '../../../components/productDetail/Review';
-import Seller from '../../../components/productDetail/Seller';
-import MayULike from '../../../components/productDetail/MayULike';
+import Seller, {StoreResponse} from '../../../components/productDetail/Seller';
 import PrimaryHeart from '~/components/global/primaryHeart';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {ProductById, Variant} from '~/types/product';
@@ -39,6 +47,16 @@ import {NormalizeColor} from '~/types/color';
 import FastImage from 'react-native-fast-image';
 import {addProductToCart, getCartUser} from '~/redux/actions/orderAction';
 import {NormalizeSize} from '~/types/size';
+import axios from 'axios';
+import {ProductStackContext} from '~/utils/context';
+import {useFavorite} from '~/screens/mainScreen/favorite/hooks/useFavorite';
+import BottomSheet, {BottomSheetBackdrop} from '@gorhom/bottom-sheet';
+import {useImagePicker} from '~/screens/mainScreen/profile/screens/profile/hooks/useImagePicker';
+import {URL_GET_FILE} from '~/constants/global';
+import {useBoard} from './hooks/useBoard';
+import {FAB} from 'react-native-paper';
+import {userInfoService} from '~/services/service/userInfo.service';
+import {AddPopupMessage} from '~/redux/reducers/popupMessageSlice';
 
 type Props = {
   route: RouteProp<ProductDetailStackParamList, 'ProductDetailScreen'>;
@@ -62,22 +80,34 @@ const ProductDetail = ({route}: Props) => {
   const [variantAddToCart, setVariantAddToCart] = useState<Variant>();
 
   const [listImage, setListImage] = useState<any>([]);
+  const [listImageDisplay, setListImageDisplay] = useState<any>([]);
   const [isShowModal, setIsShowModal] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       await productService.getProductById(Number(productId)).then(res => {
         setLoading(false);
-        console.log(res.data);
         setDataProduct(res.data);
       });
     };
     fetchData();
   }, []);
+  const {store, setStore} = useContext(ProductStackContext);
+  const [storage, setStorage] = useState(0);
+  useEffect(() => {
+    axios
+      .get(
+        `https://e-catalogue.abcdavid.top/product/store?id=${dataProduct?.store.id}}`,
+      )
+      .then(res => {
+        setStore(res.data);
+      });
+  }, [dataProduct]);
 
   useEffect(() => {
     if (dataProduct) {
       const imgs = [];
+      let storage = 0;
       const normalizeVariant: Normalized<string, Array<Variant>> = {
         ids: [],
         entities: {},
@@ -85,16 +115,19 @@ const ProductDetail = ({route}: Props) => {
       imgs.push(dataProduct.image);
       Promise.all([
         dataProduct.variants.map((item: Variant) => {
-          imgs.push(item.image);
+          storage += item.quantity;
+
           if (!normalizeVariant.ids.includes(item.color)) {
             normalizeVariant.ids.push(item.color);
             normalizeVariant.entities[item.color] = [];
+            imgs.push(item.image);
           }
           normalizeVariant.entities[item.color].push(item);
         }),
-        imgs.push(...dataProduct.images),
+        // imgs.push(...dataProduct.images),
       ]);
       setListImage(imgs);
+      setStorage(storage);
       setNormalizeVariant(normalizeVariant);
     }
   }, [dataProduct]);
@@ -249,6 +282,24 @@ const ProductDetail = ({route}: Props) => {
     setQuantity(1);
   };
 
+  const calculatorRating = (ratings: Array<number>) => {
+    return 0;
+  };
+
+  const bottomSheetBoardRef = useRef<BottomSheet>(null);
+  const snapPointsBoard = useMemo(() => ['80%'], []);
+  const handleAddressSnapPress = useCallback((index: number) => {
+    bottomSheetBoardRef.current?.snapToIndex(index);
+    if (index == 0) {
+    }
+  }, []);
+  const handleCloseBoardPress = useCallback(() => {
+    bottomSheetBoardRef.current?.close();
+  }, []);
+  const [isAddingBoard, setIsAddingBoard] = useState<boolean>(false);
+  const [nameBoard, setNameBoard] = useState<string>('');
+  const {onPressCamera, image} = useBoard();
+  const {addFavorite} = useFavorite();
   return (
     <ContainerImage
       // isOpacity={true}
@@ -355,6 +406,10 @@ const ProductDetail = ({route}: Props) => {
 
             {renderDots()}
             <PrimaryHeart
+              onPress={() => {
+                addFavorite(productId, 'product', '0');
+                // handleAddressSnapPress(0);
+              }}
               styleView={{
                 position: 'absolute',
                 width: WidthSize(44),
@@ -501,51 +556,10 @@ const ProductDetail = ({route}: Props) => {
                   ...TextFont.SBold,
                   marginLeft: WidthSize(4),
                 }}>
-                4.5
+                {calculatorRating(dataProduct?.ratings as Array<number>)}
               </Text>
             </View>
           </View>
-
-          {/* <View style={{marginTop: HeightSize(20)}}>
-            <FlatList
-              data={dataProduct?.variants}
-              contentContainerStyle={{
-                gap: WidthSize(12),
-              }}
-              renderItem={({item, index}) => {
-                return (
-                  <Pressable
-                    onPress={() => {
-                      item.id === currentVariant?.id
-                        ? null
-                        : (setCurrentVariant(item), scrollToIndex(index));
-                    }}
-                    style={{
-                      width: WidthSize(65),
-                      height: HeightSize(57),
-                      borderRadius: 28,
-                      backgroundColor:
-                        currentVariant?.id === item.id ? '#836E44' : '#EFEFE8',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <Text
-                      style={{
-                        color:
-                          currentVariant?.id === item.id ? 'white' : '#3B3021',
-                        ...TextStyle.Base,
-                        ...TextFont.SRegular,
-                      }}>
-                      {item.size}
-                    </Text>
-                  </Pressable>
-                );
-              }}
-              keyExtractor={(item, index) => index.toString()}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-            />
-          </View> */}
 
           <View style={{marginTop: HeightSize(20)}}>
             <Text>
@@ -563,8 +577,11 @@ const ProductDetail = ({route}: Props) => {
             </Text>
           </View>
           <Review />
-          <Seller />
-          <MayULike />
+          <Seller
+            store={store as StoreResponse}
+            currentProduct={productId as string}
+          />
+          {/* <MayULike /> */}
         </View>
       </ScrollView>
       <View
@@ -590,7 +607,7 @@ const ProductDetail = ({route}: Props) => {
               ...TextStyle.XL,
               color: '#3B3021',
             }}>
-            {currentVariant?.price}$
+            ${currentVariant?.price || dataProduct?.minPrice}
           </Text>
         </View>
         <Pressable
@@ -679,7 +696,10 @@ const ProductDetail = ({route}: Props) => {
                     ...TextFont.SBold,
                     ...TextStyle.XXL,
                   }}>
-                  {variantAddToCart?.price}$
+                  $
+                  {variantAddToCart?.price
+                    ? variantAddToCart?.price
+                    : dataProduct?.minPrice}
                 </Text>
                 <Text
                   style={{
@@ -687,7 +707,7 @@ const ProductDetail = ({route}: Props) => {
                     ...TextFont.SLight,
                     ...TextStyle.Base,
                   }}>
-                  Storage : {variantAddToCart?.quantity}
+                  Storage : {variantAddToCart?.quantity || storage}
                 </Text>
               </View>
               <IconSvg onPress={handleHideModal} icon="IconCloseBoldBrown" />
@@ -714,78 +734,87 @@ const ProductDetail = ({route}: Props) => {
                   marginTop: HeightSize(12),
                   gap: WidthSize(12),
                 }}>
-                {normalizeVariant?.ids.map((item: string, index: number) => {
-                  return (
-                    <Pressable
-                      disabled={
-                        normalizeVariant?.entities[item]?.find(
-                          (v: Variant) => v.size.toLocaleLowerCase() === size,
-                        )?.quantity! > 0
-                          ? false
-                          : size !== ''
-                          ? true
-                          : false
-                      }
-                      onPress={() => {
-                        if (color !== item) {
-                          setColor(item);
-                        } else {
-                          setColor('');
-                        }
-                      }}
-                      key={index}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: WidthSize(8),
-                        borderWidth: 1,
-                        borderColor: item === color ? '#3B3021' : '#EFEFE8',
-                        borderRadius: 8,
-                        padding: HeightSize(8),
-                        backgroundColor:
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: WidthSize(12),
+                    flexWrap: 'wrap',
+                  }}>
+                  {normalizeVariant?.ids.map((item: string, index: number) => {
+                    return (
+                      <Pressable
+                        disabled={
                           normalizeVariant?.entities[item]?.find(
                             (v: Variant) => v.size.toLocaleLowerCase() === size,
                           )?.quantity! > 0
-                            ? 'white'
+                            ? false
                             : size !== ''
-                            ? '#EFEFE8'
-                            : 'white',
-                      }}>
-                      <View
-                        style={{
-                          width: WidthSize(20),
-                          height: WidthSize(20),
-                          backgroundColor:
-                            NormalizeColor.entities[item.toLocaleLowerCase()],
-                          borderRadius: 100,
-                          elevation: 10,
-                          shadowColor: '#000',
-                          shadowOffset: {
-                            width: 0,
-                            height: 2,
-                          },
-                          shadowOpacity: 0.25,
+                            ? true
+                            : false
+                        }
+                        onPress={() => {
+                          if (color !== item) {
+                            setColor(item);
+                          } else {
+                            setColor('');
+                          }
                         }}
-                      />
-                      <Text
+                        key={index}
                         style={{
-                          ...TextFont.SRegular,
-                          ...TextStyle.Base,
-                          color:
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: WidthSize(8),
+                          borderWidth: 1,
+                          borderColor: item === color ? '#3B3021' : '#EFEFE8',
+                          borderRadius: 8,
+                          padding: HeightSize(8),
+                          backgroundColor:
                             normalizeVariant?.entities[item]?.find(
                               (v: Variant) =>
                                 v.size.toLocaleLowerCase() === size,
                             )?.quantity! > 0
-                              ? '#3B3021'
+                              ? 'white'
                               : size !== ''
-                              ? 'gray'
-                              : '#3B3021',
+                              ? '#EFEFE8'
+                              : 'white',
                         }}>
-                        {item}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+                        <View
+                          style={{
+                            width: WidthSize(20),
+                            height: WidthSize(20),
+                            backgroundColor:
+                              NormalizeColor.entities[item.toLocaleLowerCase()],
+                            borderRadius: 100,
+                            elevation: 10,
+                            shadowColor: '#000',
+                            shadowOffset: {
+                              width: 0,
+                              height: 2,
+                            },
+                            shadowOpacity: 0.25,
+                          }}
+                        />
+                        <Text
+                          style={{
+                            ...TextFont.SRegular,
+                            ...TextStyle.Base,
+                            color:
+                              normalizeVariant?.entities[item]?.find(
+                                (v: Variant) =>
+                                  v.size.toLocaleLowerCase() === size,
+                              )?.quantity! > 0
+                                ? '#3B3021'
+                                : size !== ''
+                                ? 'gray'
+                                : '#3B3021',
+                          }}>
+                          {item}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
             </View>
             <View
@@ -980,8 +1009,234 @@ const ProductDetail = ({route}: Props) => {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <BottomSheet
+        ref={bottomSheetBoardRef}
+        index={-1}
+        snapPoints={snapPointsBoard}
+        enablePanDownToClose={true}
+        onClose={() => {}}
+        handleIndicatorStyle={{backgroundColor: '#3B3021'}}
+        handleStyle={{
+          backgroundColor: '#F0EFE9',
+          borderTopRightRadius: 16,
+          borderTopLeftRadius: 16,
+        }}
+        backdropComponent={props => (
+          <BottomSheetBackdrop
+            {...props}
+            enableTouchThrough={true}
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            opacity={0.7}>
+            <Pressable style={{flex: 1}} />
+          </BottomSheetBackdrop>
+        )}
+        style={{
+          backgroundColor: '#F0EFE9',
+          borderColor: '#000',
+          borderTopRightRadius: 16,
+          borderTopLeftRadius: 16,
+        }}>
+        <View
+          style={{
+            marginHorizontal: WidthSize(16),
+          }}>
+          <Text
+            style={{
+              ...TextFont.SBold,
+              ...TextStyle.Base,
+              color: '#3B3021',
+              marginTop: HeightSize(16),
+            }}>
+            Choose Board
+          </Text>
+
+          {isAddingBoard && (
+            <View>
+              <Text
+                style={{
+                  ...TextFont.SBold,
+                  ...TextStyle.XL,
+                  color: '#3B3021',
+                  marginTop: HeightSize(16),
+                  alignSelf: 'center',
+                }}>
+                Add new board
+              </Text>
+
+              <Text
+                style={[
+                  styles.selectedLabel,
+                  {
+                    marginBottom: 10,
+                    marginTop: 15,
+                    color: '#3B3021',
+                    ...TextFont.SMedium,
+                  },
+                ]}>
+                Board Name
+              </Text>
+
+              <View
+                style={{
+                  marginHorizontal: WidthSize(16),
+                  marginBottom: HeightSize(32),
+                }}>
+                <TextInput
+                  style={styles.txtInput}
+                  placeholderTextColor={'#A5ABB9'}
+                  placeholder="Enter your board name"
+                  value={nameBoard}
+                  onChangeText={text => setNameBoard(text)}
+                  secureTextEntry={false}
+                />
+              </View>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                }}>
+                <Text
+                  style={[
+                    styles.selectedLabel,
+                    {
+                      marginBottom: 10,
+                      marginTop: 15,
+                      color: '#3B3021',
+                      ...TextFont.SMedium,
+                      marginEnd: 40,
+                    },
+                  ]}>
+                  Image
+                </Text>
+                <TouchableOpacity
+                  onPress={onPressCamera}
+                  style={{
+                    width: WidthSize(20),
+                    height: WidthSize(20),
+                    borderRadius: 16,
+                    backgroundColor: '#F2F2F4',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    alignSelf: 'center',
+                  }}>
+                  <IconSvg icon="IconCamera" />
+                </TouchableOpacity>
+              </View>
+              <View>
+                <FastImage
+                  source={{uri: image?.uri}}
+                  resizeMode="cover"
+                  style={{
+                    width: WidthSize(128),
+                    height: WidthSize(128),
+                    alignSelf: 'center',
+                  }}
+                />
+              </View>
+              <FAB
+                onPress={async () => {
+                  let formData = new FormData();
+                  formData.append('image', {
+                    uri: image.uri || '',
+                    type: image.type || '',
+                    name: image.fileName || '',
+                  });
+                  await userInfoService.createNewCollection({
+                    name: nameBoard,
+                    image: formData,
+                  });
+                  dispatch(
+                    AddPopupMessage({
+                      title: 'Success',
+                      type: 'success',
+                      message: 'Add new board successfully!',
+                      size: 'small',
+                      time: 'long',
+                    }),
+                  );
+                  setIsAddingBoard(false);
+                }}
+                label="Create"
+                size="small"
+                color={'#fff'}
+                style={{
+                  backgroundColor: '#836E44',
+                  marginBottom: 30,
+                  marginTop: 20,
+                }}
+              />
+            </View>
+          )}
+          <Pressable
+            style={{marginTop: HeightSize(30), alignSelf: 'center'}}
+            onPress={() => {
+              setIsAddingBoard(!isAddingBoard);
+            }}>
+            <Text>{!isAddingBoard ? 'Add new board' : 'Back'}</Text>
+          </Pressable>
+        </View>
+      </BottomSheet>
     </ContainerImage>
   );
 };
 
 export default ProductDetail;
+
+const styles = StyleSheet.create({
+  selectedSectionLabel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  selectedLabel: {
+    marginStart: 15,
+    // color: colors.black,
+    // fontWeight: 'bold',
+  },
+  resetLabel: {
+    marginEnd: 15,
+    // color: colors.primary,
+    // fontWeight: 'bold',
+  },
+  selectedSectionContent: {
+    marginTop: 15,
+  },
+
+  selectedSectionItem: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginStart: 25,
+  },
+  selectedSectionItemText: {
+    marginStart: 10,
+    alignSelf: 'flex-end',
+  },
+  title: {
+    ...TextStyle.Base,
+    ...TextFont.SMedium,
+    fontWeight: 'bold',
+    marginBottom: HeightSize(5),
+    color: '#525A7F',
+  },
+  error: {
+    ...TextStyle.Base,
+    ...TextFont.SMedium,
+    fontWeight: 'bold',
+    marginBottom: HeightSize(5),
+    color: '#BC2424',
+  },
+  txtInput: {
+    ...TextFont.SRegular,
+    borderRadius: 16,
+    paddingHorizontal: WidthSize(20),
+    backgroundColor: '#F2F2F4',
+    color: 'black',
+    height: HeightSize(64),
+    borderColor: '#D8D2C4',
+    borderWidth: 1,
+  },
+});

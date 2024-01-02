@@ -238,7 +238,9 @@ const ConfirmOrder = ({route}: Props) => {
                       paddingHorizontal: WidthSize(12),
                     }}>
                     <Text
+                      numberOfLines={1}
                       style={{
+                        width: WidthSize(148),
                         ...TextFont.SMedium,
                         ...TextStyle.Base,
                         color: '#3B3021',
@@ -375,27 +377,7 @@ const ConfirmOrder = ({route}: Props) => {
               style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-              }}>
-              <Text
-                style={{
-                  ...TextFont.GRegular,
-                  ...TextStyle.SM,
-                  color: '#3B3021',
-                }}>
-                Promo/Student code or vouchers
-              </Text>
-              <IconSvg
-                icon="IconAngleRightBrown"
-                width={HeightSize(12)}
-                height={HeightSize(12)}
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                marginTop: HeightSize(20),
               }}>
               <Text
                 style={{
@@ -523,7 +505,6 @@ const ConfirmOrder = ({route}: Props) => {
               items: dataOrder.ids,
             };
             await orderService.makeOrder(params).then(res => {
-              console.log(res);
               dispatch(SetDirectionBottomBar('up'));
               rootNavigation.navigate('Home');
             });

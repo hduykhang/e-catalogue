@@ -35,7 +35,9 @@ const PendingScreen = () => {
       allOrder.forEach(item => {
         if (item.deliver_status === 'pending') {
           const date = new Date(item.order_date);
-          const dateString = `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`;
+          const dateString = `${date.getDate()}/${
+            date.getMonth() + 1
+          }/${date.getFullYear()}`;
           if (data.ids.indexOf(dateString) === -1) {
             data.ids.push(dateString);
             data.entities[dateString] = [];
@@ -47,7 +49,7 @@ const PendingScreen = () => {
   }, [allOrder]);
 
   const totalOrder = (items: NormalizeCartVariant) => {
-    let total = 0;
+    let total = 15;
     let totalItem = 0;
     items.ids.map(item => {
       totalItem += items.entities[item].quantity;
@@ -290,7 +292,7 @@ const PendingScreen = () => {
               <TouchableOpacity
                 onPress={() => {
                   orderService
-                    .updateStatusOrder(item.id, {status: 'cancelled'})
+                    .updateStatusOrder(item.id, {status: 'canceled'})
                     .then(res => {
                       console.log(res);
                       res.status === 200 && dispatch(getAllOrder());

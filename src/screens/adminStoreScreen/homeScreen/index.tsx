@@ -11,6 +11,8 @@ import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {AdminStoreStackParamList} from '~/types';
 
+import {selectStoreInfo} from '~/redux/reducers/productSlice';
+
 const HomeScreen = () => {
   const shopInfo = [
     {
@@ -41,6 +43,24 @@ const HomeScreen = () => {
   const allOrder = useSelector(selectAllOrder);
   const navigation =
     useNavigation<StackNavigationProp<AdminStoreStackParamList>>();
+
+  const storeInfo = useSelector(selectStoreInfo);
+
+  const textAdapter = (text: string) => {
+    switch (text) {
+      case 'Visitors':
+        return 0;
+      case 'Followers':
+        return storeInfo?.followers?.length;
+      case 'Income':
+        return 0;
+      case 'Items Sold':
+        return 0;
+      default:
+        return 0;
+    }
+  };
+
   return (
     <ContainerImage
       // isOpacity={true}
@@ -96,7 +116,7 @@ const HomeScreen = () => {
                     ...TextFont.SMedium,
                     marginTop: HeightSize(16),
                   }}>
-                  0
+                  {textAdapter(item.title)}
                 </Text>
               </View>
             );
@@ -158,7 +178,7 @@ const HomeScreen = () => {
                   </Text>
                   <Pressable
                     onPress={() => {
-                      navigation.navigate('OrderScreenAdminStore');
+                      navigation.navigate('OrderStackAdminStoreParamsList');
                     }}
                     style={{
                       paddingVertical: HeightSize(10),

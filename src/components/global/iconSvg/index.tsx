@@ -66,6 +66,15 @@ import IconAddBrown from '~/assets/icons/ic_add_brown.svg';
 import IconMinusBrown from '~/assets/icons/ic_minus_brown.svg';
 import IconShopBrown from '~/assets/icons/ic_shop_brown.svg';
 import IconInfoBoxWhite from '~/assets/icons/ic_info_box_white.svg';
+import IconFollowBrown from '~/assets/icons/ic_follow_brown.svg';
+import IconFollowedBrown from '~/assets/icons/ic_followed_brown.svg';
+import IconAddImageBrown from '~/assets/icons/ic_add_image_brown.svg';
+import IconArrowRightBL from '~/assets/icons/ic_arrow_right_bl.svg';
+import IconGalleryAddBrown from '~/assets/icons/ic_gallery_add_brown.svg';
+import IconAddCircleBrown from '~/assets/icons/ic_add_circle_brown.svg';
+import IconMenuBrown from '~/assets/icons/ic_menu_brown.svg';
+import IconCalendarEdit from '~/assets/icons/ic_calendar_edit.svg';
+import IconCircleSlice from '~/assets/icons/ic_circle_slice.svg';
 
 interface IconSvgProps {
   icon:
@@ -132,7 +141,16 @@ interface IconSvgProps {
     | 'IconAddBrown'
     | 'IconMinusBrown'
     | 'IconShopBrown'
-    | 'IconInfoBoxWhite';
+    | 'IconInfoBoxWhite'
+    | 'IconFollowBrown'
+    | 'IconFollowedBrown'
+    | 'IconAddImageBrown'
+    | 'IconCalendarEdit'
+    | 'IconCircleSlice'
+    | 'IconArrowRightBL'
+    | 'IconGalleryAddBrown'
+    | 'IconAddCircleBrown'
+    | 'IconMenuBrown';
 
   width?: number;
   height?: number;
@@ -207,6 +225,15 @@ const svgComponents: Record<string, React.ComponentType> = {
   IconMinusBrown,
   IconShopBrown,
   IconInfoBoxWhite,
+  IconFollowBrown,
+  IconFollowedBrown,
+  IconAddImageBrown,
+  IconArrowRightBL,
+  IconGalleryAddBrown,
+  IconAddCircleBrown,
+  IconMenuBrown,
+  IconCalendarEdit,
+  IconCircleSlice,
 };
 
 interface Svg {

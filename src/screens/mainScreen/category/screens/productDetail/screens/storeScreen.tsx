@@ -49,6 +49,7 @@ const StoreScreen = ({route}: Props) => {
             userId: number;
           }>;
         }) => {
+          console.log(res.data);
           res.data.map(item => {
             if (item.storeId === store.id) setIsFollow(true);
           });
@@ -303,14 +304,16 @@ const StoreScreen = ({route}: Props) => {
                         source={getUrl(item.image)}
                         style={{
                           width: width / 2 - WidthSize(60),
-                          height: width / 2 - WidthSize(60),
+                          height: width / 2,
                           alignSelf: 'center',
                           borderRadius: 16,
                         }}
                         resizeMode="contain"
                       />
                       <Text
+                        numberOfLines={1}
                         style={{
+                          width: width / 2 - WidthSize(60),
                           marginTop: HeightSize(14),
                           color: '#3B3021',
                           ...TextStyle.Base,
@@ -336,7 +339,7 @@ const StoreScreen = ({route}: Props) => {
                           marginTop: HeightSize(16),
                           marginBottom: HeightSize(15),
                         }}>
-                        {item.minPrice}
+                        ${item.minPrice || 0}
                       </Text>
                       <PrimaryHeart
                         styleView={{

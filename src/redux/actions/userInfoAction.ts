@@ -27,7 +27,7 @@ export const uploadProfileImage = createAsyncThunk(
 export const getUserInfo = createAsyncThunk(
   'userInfo/getUserInfo',
   async (params: {id: string}) => {
-    // console.log('Data get user info params: ', JSON.stringify(params, null, 2));
+    console.log('Data get user info params: ', JSON.stringify(params, null, 2));
     const res = await userInfoService.getUserInfo(params);
     return {data: res};
   },
@@ -50,9 +50,17 @@ export const setUserInfo = createAsyncThunk(
       sex?: string;
       dob?: string;
       profile_image?: string;
-    } = {...params, id: account?.id || '0'};
-    // console.log('Data set user info params: ', JSON.stringify(params, null, 2));
+    } = {...params, id: account?.id?.toString() || '0'};
+    console.log('Data set user info params: ', JSON.stringify(param, null, 2));
     const res = await userInfoService.setUserInfo(param);
+    return {data: res};
+  },
+);
+
+export const getAllCollection = createAsyncThunk(
+  'userInfo/get all collection',
+  async () => {
+    const res = await userInfoService.getAllCollection();
     return {data: res};
   },
 );

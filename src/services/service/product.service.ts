@@ -6,6 +6,7 @@ import {
   ProductCategoryResponse,
   ProductsByCategory,
 } from '~/types/product';
+import {StoreResponse} from '~/screens/mainScreen/category/components/productDetail/Seller';
 
 export const productService = {
   getAllCategories: () => {
@@ -29,6 +30,28 @@ export const productService = {
       apiUrl.getProductById(productId),
       Methods.get,
       '',
+    );
+  },
+
+  getStoreById: (storeId: number) => {
+    return request<StoreResponse>(
+      apiUrl.getStoreById(storeId),
+      Methods.get,
+      '',
+    );
+  },
+
+  createNewProduct: (params: {
+    name: string;
+    description: string;
+    category: number;
+    image: FormData;
+  }) => {
+    return request<StoreResponse>(
+      apiUrl.createNewProduct(),
+      Methods.post,
+      params,
+      true,
     );
   },
 };
